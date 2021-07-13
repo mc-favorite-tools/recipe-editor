@@ -2,6 +2,9 @@ import { Tooltip } from 'antd';
 import 'antd/dist/antd.css';
 import React from 'react'
 import RecipeEditor from './components/RecipeEditor'
+import Axios from 'axios'
+
+Axios.interceptors.response.use(res => res.data)
 
 function App() {
   return (

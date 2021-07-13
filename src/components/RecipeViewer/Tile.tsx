@@ -11,7 +11,6 @@ interface IProps {
 }
 
 export default function Tile(props: IProps) {
-    // const [offset, setOffset] = useState(0)
 
     const id = React.useMemo(() => {
         return props?.data?.id?.length ? props.data.id : []
@@ -31,7 +30,7 @@ export default function Tile(props: IProps) {
 
     return (
         <div className="tile" onClick={props?.onClick?.bind(null, props.data)}>
-            <i style={{ display: 'inline-block' }} className={`icon-${id[offset]}`}>
+            <i title={id[offset]} style={{ display: 'inline-block' }} className={`icon-${id[offset]}`}>
                 { props.showCount && props.data?.count ? <span>{props.data.count}</span> : null }
                 { props.data?.id?.length ? <CloseCircleOutlined onClick={closeHandle} className='close' /> : null}
             </i>

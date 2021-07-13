@@ -1,4 +1,4 @@
-import { Row, Col, Select, Input, InputNumber, Divider, Button, notification, message } from "antd";
+import { Row, Col, Select, Input, InputNumber, Divider, Button, notification, message, Tooltip } from "antd";
 import React, { useEffect, useState } from "react";
 import { CraftMap, CraftType, CraftTypeId, getType, ICraftData, ITileData } from "../../lib";
 import Recipe, { CustomRecipeItem } from "../../lib/Recipe";
@@ -6,10 +6,15 @@ import { download } from "../../utils";
 import copy from "copy-to-clipboard";
 import Crafting from "../RecipeViewer";
 import ItemModel from "../ItemModel";
+import { InfoCircleOutlined } from '@ant-design/icons'
+import Axios from 'axios'
 
 const defaultValue: ICraftData = { type: 'crafting_shaped', input: [], output: {} }
 let recipe = new Recipe()
-const version = '1.0.0'
+const version = '1.0.1'
+
+let mapExperience = {}
+let mapCookingtime = {}
 
 export default function() {
     
@@ -29,10 +34,11 @@ export default function() {
                 duration: 0,
                 message: (
                     <div>
-                        <h3>1.0.0-beta版本</h3>
+                        <h3>{version}-beta版本</h3>
                         <div>支持常见8种类型配方的定义</div>
                         <div>支持展示数组类型的配方</div>
                         <div>支持下载文件与复制到剪贴板</div>
+                        <div>支持部分经验值和烧制时间默认值填充</div>
                         <div style={{ textAlign: 'right' }}>感谢您的支持 by hans000</div>
                     </div>
                 )
@@ -40,6 +46,13 @@ export default function() {
             localStorage.setItem('version', version)
         }
     }, [])
+
+    useEffect(() => {
+        Axios.get('./assets/default.json').then((data: any) => {
+            mapCookingtime = data.cookingtime
+            mapExperience = data.experience
+        })
+    })
 
     function importFile(value: string) {
         if (!value) {
@@ -90,6 +103,19 @@ export default function() {
         }
         updateJson()
     }
+
+    function firstTile(item: ITileData) {
+        const type = recipe.getProps('type') as string
+        const hasExp = ['blasting', 'smoking', 'smelting', 'campfire_cooking'].includes(type)
+        if (hasExp) {
+            recipe.setProps({
+                cookingtime: mapCookingtime[type]
+            })
+        }
+        recipe.setProps({
+            experience: mapExperience[item.id[0]]
+        })
+    }
     
     function okHandle(item: ITileData) {
         if (actIndex === undefined) {
@@ -100,6 +126,9 @@ export default function() {
                 },
             })
         } else {
+            if (! actIndex) {
+                firstTile(item)
+            }
             const ingredients = recipe.getProps('ingredients') as CustomRecipeItem[]
             ingredients[actIndex] = { item: item.id }
             recipe.setProps({
@@ -168,7 +197,12 @@ export default function() {
                 onCancel={() => setItemModalVisible(false)}
                 onOk={okHandle} />
             <Row style={{ marginBottom: 16 }}>
-                <Col span={4} style={{ textAlign: 'right', paddingRight: 16, lineHeight: '30px' }}>type</Col>
+                <Col span={4} style={{ textAlign: 'right', paddingRight: 8, lineHeight: '30px' }}>
+                    <span>type</span>
+                    <Tooltip title='配方类型'>
+                        <InfoCircleOutlined style={{ color: '#aaa', paddingLeft: 4, verticalAlign: 'middle' }} />
+                    </Tooltip>
+                </Col>
                 <Col span={16}>
                     <Select style={{ width: '100%' }} onChange={typeChange} value={data.type} defaultValue='crafting_shaped' placeholder='请选择'>
                         {
@@ -183,9 +217,14 @@ export default function() {
                 </Col>
             </Row>
             <Row style={{ marginBottom: `${show ? '16px' : 0}` }}>
-                <Col span={4} style={{ textAlign: 'right', paddingRight: 16, lineHeight: '30px' }}>group</Col>
+                <Col span={4} style={{ textAlign: 'right', paddingRight: 8, lineHeight: '30px' }}>
+                    <span>group</span>
+                    <Tooltip title='分组标识'>
+                        <InfoCircleOutlined style={{ color: '#aaa', paddingLeft: 4, verticalAlign: 'middle' }} />
+                    </Tooltip>
+                </Col>
                 <Col span={16}>
-                    <Input allowClear value={data.group} onChange={groupChange} placeholder='分组，选填' />
+                    <Input allowClear value={data.group} onChange={groupChange} placeholder='选填，相同标识符的配方会在配方书中被显示为一组' />
                 </Col>
             </Row>
             {
@@ -193,15 +232,25 @@ export default function() {
                     ? (
                         <>
                             <Row style={{ marginBottom: 16 }}>
-                                <Col span={4} style={{ textAlign: 'right', paddingRight: 16, lineHeight: '30px' }}>cookingtime</Col>
+                                <Col span={4} style={{ textAlign: 'right', paddingRight: 8, lineHeight: '30px' }}>
+                                    <span>cookingtime</span>
+                                    <Tooltip title='烧炼时间，单位tick，20tick=1s'>
+                                        <InfoCircleOutlined style={{ color: '#aaa', paddingLeft: 4, verticalAlign: 'middle' }} />
+                                    </Tooltip>
+                                </Col>
                                 <Col span={16}>
-                                    <InputNumber min={0} value={data.cookingtime} onChange={cookingtimeChange} style={{ width: '100%' }} placeholder='请输入' />
+                                    <InputNumber min={0} step={20} precision={0} value={data.cookingtime} onChange={cookingtimeChange} style={{ width: '100%' }} placeholder='请输入，单位tick' />
                                 </Col>
                             </Row>
                             <Row>
-                                <Col span={4} style={{ textAlign: 'right', paddingRight: 16, lineHeight: '30px' }}>experience</Col>
+                                <Col span={4} style={{ textAlign: 'right', paddingRight: 8, lineHeight: '30px' }}>
+                                    <span>experience</span>    
+                                    <Tooltip title='经验值'>
+                                        <InfoCircleOutlined style={{ color: '#aaa', paddingLeft: 4, verticalAlign: 'middle' }} />
+                                    </Tooltip>
+                                </Col>
                                 <Col span={16}>
-                                    <InputNumber min={0} value={data.experience} onChange={experienceChange} style={{ width: '100%' }} placeholder='请输入' />
+                                    <InputNumber min={0} step={0.1} value={data.experience} onChange={experienceChange} style={{ width: '100%' }} placeholder='请输入' />
                                 </Col>
                             </Row>
                         </>

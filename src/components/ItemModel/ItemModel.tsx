@@ -4,8 +4,6 @@ import { ITileData } from "../../lib";
 import Tile from "../RecipeViewer/Tile";
 import Axios from 'axios'
 
-Axios.interceptors.response.use(res => res.data)
-
 interface IProps {
     visible: boolean;
     value: ITileData;
