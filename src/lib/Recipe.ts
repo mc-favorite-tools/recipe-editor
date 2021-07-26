@@ -161,7 +161,9 @@ export default class Recipe {
         const { ingredients, result, ...rest } = this.#data
         return {
             ...rest,
-            input: ingredients.map(it => ({ id: it.item })),
+            input: ingredients.map(it => {
+                return it ? { id: it.item } : undefined
+            }),
             output: (
                 result
                     ? { id: result.item ? [result.item] : [], count: result.count }

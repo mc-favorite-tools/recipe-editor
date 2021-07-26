@@ -1,5 +1,5 @@
 import { Row, Col, Select, Input, InputNumber, Divider, Button, notification, message, Tooltip } from "antd";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { CraftMap, CraftType, CraftTypeId, getType, ICraftData, ITileData } from "../../lib";
 import Recipe, { CustomRecipeItem } from "../../lib/Recipe";
 import { download } from "../../utils";
@@ -8,10 +8,11 @@ import Crafting from "../RecipeViewer";
 import ItemModel from "../ItemModel";
 import { InfoCircleOutlined } from '@ant-design/icons'
 import Axios from 'axios'
+import jszip from 'jszip'
 
 const defaultValue: ICraftData = { type: 'crafting_shaped', input: [], output: {} }
 let recipe = new Recipe()
-const version = '1.0.1'
+const version = '1.2.0'
 
 let mapExperience = {}
 let mapCookingtime = {}
@@ -26,7 +27,10 @@ export default function() {
     const [filename, setFilename] = useState('');
     const [modalVal, setModalVal] = useState<ITileData>();
     const [limit, setLimit] = useState(-1)
-
+    const [importType, setImportType] = useState(1)
+    const [name, setName] = useState<string[]>([])
+    const cache = useRef<jszip>(null)
+    
     useEffect(() => {
         const oldVersion = localStorage.getItem('version')
         if (oldVersion !== version) {
@@ -34,11 +38,12 @@ export default function() {
                 duration: 0,
                 message: (
                     <div>
-                        <h3>{version}-beta版本</h3>
+                        <h3>v{version}</h3>
                         <div>支持常见8种类型配方的定义</div>
                         <div>支持展示数组类型的配方</div>
                         <div>支持下载文件与复制到剪贴板</div>
                         <div>支持部分经验值和烧制时间默认值填充</div>
+                        <div style={{ color: 'orange' }}>导入功能添加对原版配方的支持</div>
                         <div style={{ textAlign: 'right' }}>感谢您的支持 by hans000</div>
                     </div>
                 )
@@ -52,7 +57,14 @@ export default function() {
             mapCookingtime = data.cookingtime
             mapExperience = data.experience
         })
-    })
+        Axios.get('./assets/recipe.zip', { responseType: 'arraybuffer' })
+            .then((zip: any) => {
+                jszip.loadAsync(zip).then(res => {
+                    setName(() => Object.keys(res.files).map(name => name.split('.')[0]))
+                    cache.current = res
+                })
+            })
+    }, [])
 
     function importFile(value: string) {
         if (!value) {
@@ -179,6 +191,13 @@ export default function() {
         recipe.reset()
         updateJson()
     }
+
+    function handleImport(value: string) {
+        cache.current.file(value + '.json').async('string').then(text => {
+            setImportText(text)
+            importFile(text)
+        })
+    }
     
     const show = React.useMemo(() => getType(data.type) === CraftType.Other, [data.type])
     
@@ -265,7 +284,26 @@ export default function() {
             <Row style={{ marginBottom: 16 }}>
                 <Col span={4} style={{ textAlign: 'right', paddingRight: 16, lineHeight: '30px' }}>导入</Col>
                 <Col span={16}>
-                    <Input.Search placeholder='请输入' enterButton='解析' value={importText} onChange={(e) => setImportText(e.target.value)} onSearch={importFile} />
+                    <Input.Group compact>
+                        <Select value={importType} onChange={(val) => setImportType(val)} style={{ width: '25%' }}>
+                            <Select.Option value={1}>原版配方</Select.Option>
+                            <Select.Option value={2}>自定义配方</Select.Option>
+                        </Select>
+                        {
+                            importType === 1
+                                ? (
+                                    <Select showSearch style={{ width: '75%' }} onChange={handleImport}>
+                                        {
+                                            name.map(v => <Select.Option key={v} value={v}>{v}</Select.Option>)
+                                        }
+                                    </Select>
+                                )
+                                : (
+                                    <Input.Search style={{ width: '75%' }} placeholder='请输入' enterButton='解析' value={importText} onChange={(e) => setImportText(e.target.value)} onSearch={importFile} />
+                                )
+                        }
+                    </Input.Group>
+                    {/*  */}
                 </Col>
             </Row>
             <Row style={{ marginBottom: 16 }}>
