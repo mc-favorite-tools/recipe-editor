@@ -15,3 +15,7 @@ export function download(filename: string, text: string) {
     a.click();
     document.body.removeChild(a);
 }
+
+export function request(url: string) {
+    return fetch(url).then(res => res.json())
+}

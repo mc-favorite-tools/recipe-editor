@@ -1,19 +1,18 @@
 import React, { useEffect, useState } from "react";
 import Tile from "./Tile";
 import Grid from "./Grid";
-import { ICraftData, ITileData, transform } from "../../lib";
+import { ICraftData, ITileData } from "../../lib";
 import Smithing from "./Smithing";
 
-interface IProps {
+/**
+ * 工作台
+ */
+export default function Crafting(props: {
     data: ICraftData;
     onClick?: (data: ITileData, index: number) => void;
     onClear?: (data: ITileData, index: number) => void;
     showCount?: boolean
-}
-/**
- * 工作台
- */
-export default function Crafting(props: IProps) {
+}) {
     const [offset, setOffset] = useState(0)
     
     useEffect(() => {

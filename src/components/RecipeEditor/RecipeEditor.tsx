@@ -1,86 +1,123 @@
-import { Row, Col, Select, Input, InputNumber, Divider, Button, notification, message, Tooltip } from "antd";
-import React, { useEffect, useRef, useState } from "react";
+import { Row, Col, Select, Input, InputNumber, Divider, Button, message, Tooltip } from "antd";
+import React, { useContext, useEffect, useState } from "react";
 import { CraftMap, CraftType, CraftTypeId, getType, ICraftData, ITileData } from "../../lib";
 import Recipe, { CustomRecipeItem } from "../../lib/Recipe";
-import { download } from "../../utils";
-import copy from "copy-to-clipboard";
+import { download, request, trimPrefix } from "../../utils";
 import Crafting from "../RecipeViewer";
 import ItemModel from "../ItemModel";
 import { InfoCircleOutlined } from '@ant-design/icons'
-import Axios from 'axios'
-import jszip from 'jszip'
+import { AppContenxt } from "../../store";
 
 const defaultValue: ICraftData = { type: 'crafting_shaped', input: [], output: {} }
 let recipe = new Recipe()
-const version = '1.2.0'
 
 let mapExperience = {}
 let mapCookingtime = {}
 
-export default function() {
-    
+export default function(props: {
+}) {
+    const [state, dispatch] = useContext(AppContenxt)
     const [showCount, setShowCount] = useState(true)
     const [itemModalVisible, setItemModalVisible] = useState(false)
     const [data, setData] = useState<ICraftData>(defaultValue)
-    const [actIndex, setActIndex] = useState<number>(0);
-    const [importText, setImportText] = useState('');
-    const [filename, setFilename] = useState('');
-    const [modalVal, setModalVal] = useState<ITileData>();
+    const [actIndex, setActIndex] = useState<number>(0)
+    const [importText, setImportText] = useState('')
+    const [filename, setFilename] = useState('')
+    const [recipeName, setRecipeName] = useState(undefined)
+    const [modalVal, setModalVal] = useState<ITileData>()
     const [limit, setLimit] = useState(-1)
     const [importType, setImportType] = useState(1)
-    const [name, setName] = useState<string[]>([])
-    const cache = useRef<jszip>(null)
+    const [recipeMeta, setRecipeMeta] = useState<Array<{ file: string; id: string; type: string }>>([])
     
     useEffect(() => {
-        const oldVersion = localStorage.getItem('version')
-        if (oldVersion !== version) {
-            notification.open({
-                duration: 0,
-                message: (
-                    <div>
-                        <h3>v{version}</h3>
-                        <div>支持常见8种类型配方的定义</div>
-                        <div>支持展示数组类型的配方</div>
-                        <div>支持下载文件与复制到剪贴板</div>
-                        <div>支持部分经验值和烧制时间默认值填充</div>
-                        <div style={{ color: 'orange' }}>导入功能添加对原版配方的支持</div>
-                        <div style={{ textAlign: 'right' }}>感谢您的支持 by hans000</div>
-                    </div>
-                )
+        dispatch({
+            type: 'UpdateLoading',
+            payload: true
+        })
+        request('./assets/default.json').then(data => {
+            mapCookingtime = data.cookingtime
+            mapExperience = data.experience
+        }).catch(() => {
+            message.error('资源加载失败')
+        }).finally(() => {
+            dispatch({
+                type: 'UpdateLoading',
+                payload: false
             })
-            localStorage.setItem('version', version)
-        }
+        })
     }, [])
 
     useEffect(() => {
-        Axios.get('./assets/default.json').then((data: any) => {
-            mapCookingtime = data.cookingtime
-            mapExperience = data.experience
+        dispatch({
+            type: 'UpdateLoading',
+            payload: true
         })
-        Axios.get('./assets/recipe.zip', { responseType: 'arraybuffer' })
-            .then((zip: any) => {
-                jszip.loadAsync(zip).then(res => {
-                    setName(() => Object.keys(res.files).map(name => name.split('.')[0]))
-                    cache.current = res
-                })
+        request(`https://unpkg.com/@wikijs/mc-recipes@1.0.5/dist/${state.version}.json`).then(data => {
+            setRecipeMeta(data)
+        }).catch(() => {
+            message.error('资源加载失败')
+        }).finally(() => {
+            dispatch({
+                type: 'UpdateLoading',
+                payload: false
             })
-    }, [])
+        })
+    }, [state.version])
+
+    function fetchIdsByTag(tag: string) {
+        return request(`https://unpkg.com/@wikijs/mc-tags/dist/${state.version}/items/${tag}.json`)
+            .then(data => {
+                return data.values.map(item => ({ item }))
+            })
+    }
+
+    function parseTag(obj: any) {
+        // 解析tags - 无序
+        if (obj.ingredients?.length) {
+            return Promise.all(obj.ingredients.map(item => {
+                if (item.tag) {
+                    return fetchIdsByTag(trimPrefix(item.tag)).then(data => data)
+                }
+                return item
+            })).then(data => {
+                obj.ingredients = data
+                return obj
+            })
+        }
+
+        if (obj.key) {
+            return Promise.all(Object.keys(obj.key).map(char => {
+                const tag = obj.key[char].tag
+                if (tag) {
+                    return fetchIdsByTag(trimPrefix(tag)).then(data => ({ [char]: data }))
+                }
+                return { [char]: obj.key[char] }
+            })).then(data => {
+                obj.key = Object.assign({}, ...data)
+                return obj
+            })
+        }
+        return Promise.resolve(obj)
+    }
 
     function importFile(value: string) {
-        if (!value) {
-            message.warning('请输入数据！')
-            return
+        if (! value) {
+            message.warn('请输入数据！')
+            return Promise.reject()
         }
         try {
             const obj = JSON.parse(value)
-            recipe.import(obj)
-            updateJson()
+            return parseTag(obj).then(data => {
+                recipe.import(data)
+                updateJson()
+            })
         } catch (error) {
             if (value !== '') {
                 message.warning('解析失败')
                 console.log(error);
             }
             setData(() => defaultValue)
+            return Promise.reject()
         }
     }
     
@@ -170,8 +207,8 @@ export default function() {
             }
             download(filename + '.json', text)
         } else {
-            copy(text)
-            message.success('已复制到剪切板')
+            navigator.clipboard.writeText(text)
+            message.success('已复制到剪贴板')
         }
     }
     
@@ -186,20 +223,38 @@ export default function() {
     }
     
     function reset() {
-        setImportText(() => '')
-        setFilename(() => '')
+        setImportText('')
+        setFilename('')
+        setRecipeName(undefined)
         recipe.reset()
         updateJson()
     }
 
     function handleImport(value: string) {
-        cache.current.file(value + '.json').async('string').then(text => {
-            setImportText(text)
-            importFile(text)
+        setRecipeName(value)
+        dispatch({
+            type: 'UpdateLoading',
+            payload: true
         })
+        fetch(`https://unpkg.com/@wikijs/mc-recipes/dist/recipes/${state.version}/${value}.json`)
+            .then(res => res.text())
+            .then(text => {
+                setImportText(text)
+                return importFile(text)
+            })
+            .catch(() => {
+                message.error('资源加载失败')
+            })
+            .finally(() => {
+                dispatch({
+                    type: 'UpdateLoading',
+                    payload: false,
+                })
+            })
     }
     
     const show = React.useMemo(() => getType(data.type) === CraftType.Other, [data.type])
+    const version = React.useMemo(() => state.version.split('.')[1], [state.version])
     
     return (
         <div>
@@ -225,10 +280,15 @@ export default function() {
                 <Col span={16}>
                     <Select style={{ width: '100%' }} onChange={typeChange} value={data.type} defaultValue='crafting_shaped' placeholder='请选择'>
                         {
-                            Object.keys(CraftMap).map((k) => {
+                            Object.keys(CraftMap).filter(key => !CraftMap[key].disabled.includes(state.version)).map((k) => {
                                 const value = CraftMap[k as keyof typeof CraftMap].name
                                 return (
-                                    <Select.Option key={k} value={k}>{value} - {k}</Select.Option>
+                                    <Select.Option key={k} value={k}>
+                                        <div className='select-item'>
+                                            <i className={`icon-${version} ${CraftMap[k].icon}-${version}`}></i>
+                                            <span>{value} - {k}</span>
+                                        </div>
+                                    </Select.Option>
                                 )
                             })
                         }
@@ -292,9 +352,17 @@ export default function() {
                         {
                             importType === 1
                                 ? (
-                                    <Select showSearch style={{ width: '75%' }} onChange={handleImport}>
+                                    <Select value={recipeName} showSearch filterOption={(input, option) => {
+                                        return (option.name + option.value).includes(input)
+                                    }} optionLabelProp="value" style={{ width: '75%' }} placeholder='配方列表，请选择' onChange={handleImport}>
                                         {
-                                            name.map(v => <Select.Option key={v} value={v}>{v}</Select.Option>)
+                                            recipeMeta.map(v => <Select.Option key={v.file} name={state.lang[v.id]} value={v.file}>
+                                                <div className='select-item'>
+                                                    <i className={`icon-${version} ${v.id}-${version}`}></i>
+                                                    <span>{state.lang[v.id]} - {v.id}</span>
+                                                    <i className={`crafing icon-${version} ${CraftMap[v.type].icon}-${version}`}></i>
+                                                </div>
+                                            </Select.Option>)
                                         }
                                     </Select>
                                 )
@@ -309,7 +377,7 @@ export default function() {
             <Row style={{ marginBottom: 16 }}>
                 <Col span={4} style={{ textAlign: 'right', paddingRight: 16, lineHeight: '30px' }}>文件名</Col>
                 <Col span={16}>
-                    <Input.Search placeholder='请输入，缺省时复制到剪切板' value={filename} onChange={(e) => setFilename(e.target.value)} onSearch={fileHandle} enterButton='导出' />
+                    <Input.Search placeholder='请输入，缺省时复制到剪贴板' value={filename} onChange={(e) => setFilename(e.target.value)} onSearch={fileHandle} enterButton='导出' />
                 </Col>
             </Row>
             <Row style={{ marginBottom: 16 }}>

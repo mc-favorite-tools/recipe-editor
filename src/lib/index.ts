@@ -9,14 +9,14 @@ export enum CraftType {
 }
 export type CraftTypeId = keyof typeof CraftMap
 export const CraftMap = {
-    crafting_shaped: { name: '有序合成', type: CraftType.CraftShaped },
-    crafting_shapeless: { name: '无序合成', type: CraftType.CraftShapeless },
-    stonecutting: { name: '切石机', type: CraftType.StoneCutting },
-    smithing: { name: '锻造台', type: CraftType.Smithing },
-    blasting: { name: '高炉', type: CraftType.Other },
-    campfire_cooking: { name: '营火', type: CraftType.Other },
-    smelting: { name: '熔炉', type: CraftType.Other },
-    smoking: { name: '烟熏炉', type: CraftType.Other },
+    crafting_shaped: { name: '有序合成', type: CraftType.CraftShaped, icon: 'crafting_table', disabled: [] },
+    crafting_shapeless: { name: '无序合成', type: CraftType.CraftShapeless, icon: 'crafting_table', disabled: [] },
+    smelting: { name: '熔炉', type: CraftType.Other, icon: 'furnace', disabled: [] },
+    stonecutting: { name: '切石机', type: CraftType.StoneCutting, icon: 'stonecutter', disabled: ['1.13'] },
+    smithing: { name: '锻造台', type: CraftType.Smithing, icon: 'smithing_table', disabled: ['1.13'] },
+    blasting: { name: '高炉', type: CraftType.Other, icon: 'blast_furnace', disabled: ['1.13'] },
+    campfire_cooking: { name: '营火', type: CraftType.Other, icon: 'campfire', disabled: ['1.13'] },
+    smoking: { name: '烟熏炉', type: CraftType.Other, icon: 'smoker', disabled: ['1.13'] },
 }
 
 const ERROR_NAME = 'error'

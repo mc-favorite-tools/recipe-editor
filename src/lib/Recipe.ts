@@ -1,5 +1,5 @@
 import { CraftTypeId, CraftType, ICraftData, getType as getCustomType } from ".";
-import { trimPrefix, addPrefix } from "../utils";
+import { trimPrefix, addPrefix, request } from "../utils";
 
 interface RecipeItem {
     tag?: string

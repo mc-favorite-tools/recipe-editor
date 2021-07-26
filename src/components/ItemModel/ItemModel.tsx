@@ -1,8 +1,9 @@
 import { Modal, Row, Col, Select, InputNumber, message } from "antd";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { ITileData } from "../../lib";
+import { AppContenxt } from "../../store";
+import { request } from "../../utils";
 import Tile from "../RecipeViewer/Tile";
-import Axios from 'axios'
 
 interface IProps {
     visible: boolean;
@@ -19,15 +20,14 @@ export default function ItemModal(props: IProps) {
     const [count, setCount] = useState(1)
     const [value, setValue] = useState<string[]>([])
     const [options, setOptions] = useState<Array<{ id: string, name: string }>>([])
+    const [state] = useContext(AppContenxt)
 
     useEffect(() => {
-        Axios.get('./assets/map.json').then((data) => {
-            const result = Object.entries(data).map(([id, name]) => {
-                return { id, name }
-            })
-            setOptions(() => result)
+        const result = Object.entries(state.lang).map(([id, name]: [string, string]) => {
+            return { id, name }
         })
-    }, [])
+        setOptions(result)
+    }, [state.lang])
 
     useEffect(() => {
         setValue(() => props.value?.id || [])
@@ -61,6 +61,7 @@ export default function ItemModal(props: IProps) {
             <Tile offset={0} onClear={handleClear} data={{ id: [props.value] }} />
         )
     }
+    const version = React.useMemo(() => state.version.split('.')[1], [state.version])
 
     return (
         <Modal
@@ -90,7 +91,10 @@ export default function ItemModal(props: IProps) {
                         {
                             options.map(({ id, name }) => (
                                 <Select.Option key={id} value={id} name={name}>
-                                    {name} - {id}
+                                    <div className='select-item'>
+                                        <i className={`icon-${version} ${id}-${version}`}></i>
+                                        <span>{name} - {id}</span>
+                                    </div>
                                 </Select.Option>
                             ))
                         }

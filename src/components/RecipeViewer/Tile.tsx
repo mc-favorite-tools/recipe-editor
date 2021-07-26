@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useContext } from "react";
 import { ITileData } from "../../lib";
 import { CloseCircleOutlined } from '@ant-design/icons'
+import { AppContenxt } from "../../store";
 
 interface IProps {
     data: ITileData;
@@ -11,8 +12,9 @@ interface IProps {
 }
 
 export default function Tile(props: IProps) {
+    const [state] = useContext(AppContenxt)
 
-    const id = React.useMemo(() => {
+    const ids = React.useMemo(() => {
         return props?.data?.id?.length ? props.data.id : []
     }, [props.data])
 
@@ -22,15 +24,27 @@ export default function Tile(props: IProps) {
     }
 
     const offset = React.useMemo(() => {
-        if (id.length) {
-            return (props.offset + 1) % id.length
+        if (ids.length) {
+            return (props.offset + 1) % ids.length
         }
         return 0
     }, [props.offset])
 
+    const cls = React.useMemo(() => {
+        const v = state.version.split('.')[1]
+        const id = ids[offset]
+        const name = (id === 'error' || !state.lang[id]) ? 'error' : `${id}-${v}`
+        return id ? `icon-${v} ${name}` : 'undefined'
+    }, [ids, state.version, offset, state.lang])
+
+    const title = React.useMemo(() => {
+        const id = ids[offset]
+        return id === 'error' ? '' : state.lang[id] + '-' + id
+    }, [ids, offset, state.lang])
+
     return (
         <div className="tile" onClick={props?.onClick?.bind(null, props.data)}>
-            <i title={id[offset]} style={{ display: 'inline-block' }} className={`icon-${id[offset]}`}>
+            <i title={title} style={{ display: 'inline-block' }} className={cls}>
                 { props.showCount && props.data?.count ? <span>{props.data.count}</span> : null }
                 { props.data?.id?.length ? <CloseCircleOutlined onClick={closeHandle} className='close' /> : null}
             </i>
