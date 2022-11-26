@@ -35,11 +35,11 @@ export default defineConfig({
                     path: 'https://unpkg.com/antd@4.21.0/dist/antd.min.js',
                     css: 'https://unpkg.com/antd@4.21.0/dist/antd.min.css',
                 },
-                {
-                    name: 'jszip',
-                    var: 'JSZip',
-                    path: 'https://unpkg.com/jszip@3.10.1/dist/jszip.min.js',
-                },
+                // {
+                //     name: 'jszip',
+                //     var: 'JSZip',
+                //     path: 'https://unpkg.com/jszip@3.10.1/dist/jszip.min.js',
+                // },
                 // {
                 //     name: 'idbKeyval',
                 //     var: 'idbKeyval',

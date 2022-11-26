@@ -1,5 +1,5 @@
 import { Select, Spin } from 'antd';
-import 'antd/dist/antd.css';
+// import 'antd/dist/antd.css';
 import React, { useEffect } from 'react'
 import RecipeEditor from './components/RecipeEditor'
 import { AppContenxt, useAppReducer } from './store';
