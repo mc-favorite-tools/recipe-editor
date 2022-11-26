@@ -26,7 +26,7 @@ jobs:
         if: success()
         uses: crazy-max/ghaction-github-pages@v3.0.0
         with:
-          repo: git@github.com:hans000/dev.git
+          repo: hans000/dev
           target_branch: mc-recipe-edtior
           build_dir: dist
         env:
