@@ -1,3 +1,8 @@
 {
-    "typescript.tsdk": "node_modules\\typescript\\lib"
+    "typescript.tsdk": "node_modules\\typescript\\lib",
+    "licenseheader.Author": "hans0000",
+    "licenseheader.CopiedBy": "Copyright (c) 2021 hans0000",
+    "licenseheader.LicenseName": "GPL",
+    "licenseheader.LicenseUrl": "https://raw.githubusercontent.com/facebook/react-native/master/LICENSE",
+    "headerLicense.license": "// The GPL License, Copyright (c) 2021, hans0000"
 }

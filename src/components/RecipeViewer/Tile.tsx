@@ -1,3 +1,4 @@
+// The GPL License, Copyright (c) 2021, hans0000
 import React, { useContext } from "react";
 import { ITileData } from "../../lib";
 import { CloseCircleOutlined } from '@ant-design/icons'

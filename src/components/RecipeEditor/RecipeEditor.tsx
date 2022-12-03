@@ -1,3 +1,4 @@
+// The GPL License, Copyright (c) 2021, hans0000
 import { Row, Col, Select, Input, InputNumber, Divider, Button, message, Tooltip } from "antd";
 import React, { useContext, useEffect, useState } from "react";
 import { CraftMap, CraftType, CraftTypeId, getType, ICraftData, ITileData } from "../../lib";

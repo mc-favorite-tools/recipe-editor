@@ -1,3 +1,4 @@
+// The GPL License, Copyright (c) 2021, hans0000
 import { defineConfig } from 'vite'
 import reactRefresh from '@vitejs/plugin-react-refresh'
 // import vitePluginImport from 'vite-plugin-babel-import'

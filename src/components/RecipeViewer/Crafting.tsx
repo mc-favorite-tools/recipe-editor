@@ -1,3 +1,4 @@
+// The GPL License, Copyright (c) 2021, hans0000
 import React, { useEffect, useState } from "react";
 import Tile from "./Tile";
 import Grid from "./Grid";
