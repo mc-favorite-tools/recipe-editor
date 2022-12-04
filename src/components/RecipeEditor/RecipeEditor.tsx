@@ -66,10 +66,9 @@ export default function(props: {
     }, [state.version])
 
     function fetchIdsByTag(tag: string) {
-        return request(`https://unpkg.com/@wikijs/mc-tags/dist/${state.version}/items/${tag}.json`)
-            .then(data => {
-                return data.values.map(item => ({ item }))
-            })
+        return state.tagZip.file(`items/${tag}.json`).async('string').then(data => {
+            return JSON.parse(data).values.map(item => ({ item }))
+        })
     }
 
     function parseTag(obj: any) {
@@ -233,25 +232,13 @@ export default function(props: {
 
     function handleImport(value: string) {
         setRecipeName(value)
-        dispatch({
-            type: 'UpdateLoading',
-            payload: true
+        dispatch({ type: 'UpdateLoading', payload: true })
+        state.recipeZip.file(`${value}.json`).async('string').then(text => {
+            setImportText(text)
+            return importFile(text)
+        }).finally(() => {
+            dispatch({ type: 'UpdateLoading', payload: false })
         })
-        fetch(`https://unpkg.com/@wikijs/mc-recipes/dist/recipes/${state.version}/${value}.json`)
-            .then(res => res.text())
-            .then(text => {
-                setImportText(text)
-                return importFile(text)
-            })
-            .catch(() => {
-                message.error('资源加载失败')
-            })
-            .finally(() => {
-                dispatch({
-                    type: 'UpdateLoading',
-                    payload: false,
-                })
-            })
     }
     
     const show = React.useMemo(() => getType(data.type) === CraftType.Other, [data.type])

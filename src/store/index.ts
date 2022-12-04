@@ -1,4 +1,5 @@
 // The GPL License, Copyright (c) 2021, hans0000
+import jszip from "jszip";
 import { createContext, useReducer } from "react";
 
 interface IStore {
@@ -6,18 +7,24 @@ interface IStore {
     version: string
     loading: boolean
     lang: Record<string, string>
+    tagZip: jszip
+    recipeZip: jszip
 }
 
 type IAction =
 | { type: 'UpdateVersion', payload: string }
 | { type: 'UpdateLoading', payload: boolean }
 | { type: 'UpdateLang', payload: Record<string, string> }
+| { type: 'UpdateTagZip', payload: jszip }
+| { type: 'UpdateRecipeZip', payload: jszip }
 
 const defaultStore: IStore = {
     versionList: ['1.13', '1.14', '1.15', '1.16', '1.17', '1.18', '1.19'],
     version: '1.19',
     loading: false,
     lang: {},
+    tagZip: null,
+    recipeZip: null,
 }
 
 export const AppContenxt = createContext<[IStore, React.Dispatch<IAction>]>([null, null])
@@ -38,6 +45,16 @@ function reducer(state: IStore, action: IAction) {
             return {
                 ...state,
                 lang: action.payload,
+            }
+        case 'UpdateTagZip':
+            return {
+                ...state,
+                tagZip: action.payload,
+            }
+        case 'UpdateRecipeZip':
+            return {
+                ...state,
+                recipeZip: action.payload,
             }
         default:
             return state;
