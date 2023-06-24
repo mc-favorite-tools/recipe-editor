@@ -53,7 +53,7 @@ export default function(props: {
             type: 'UpdateLoading',
             payload: true
         })
-        request(`https://unpkg.com/@wikijs/mc-recipes@1.0.5/dist/${state.version}.json`).then(data => {
+        request(`https://unpkg.com/@wikijs/mc-recipes/dist/${state.version}.json`).then(data => {
             setRecipeMeta(data)
         }).catch(() => {
             message.error('资源加载失败')

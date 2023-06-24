@@ -34,7 +34,7 @@ export default function Tile(props: IProps) {
     const cls = React.useMemo(() => {
         const v = state.version.split('.')[1]
         const id = ids[offset]
-        const name = (id === 'error' || !state.lang[id]) ? 'error' : `${id}-${v}`
+        const name = id === 'error' ? 'error' : `${id}-${v}`
         return id ? `icon-${v} ${name}` : 'undefined'
     }, [ids, state.version, offset, state.lang])
 

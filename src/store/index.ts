@@ -19,8 +19,8 @@ type IAction =
 | { type: 'UpdateRecipeZip', payload: jszip }
 
 const defaultStore: IStore = {
-    versionList: ['1.13', '1.14', '1.15', '1.16', '1.17', '1.18', '1.19'],
-    version: '1.19',
+    versionList: ['1.13', '1.14', '1.15', '1.16', '1.17', '1.18', '1.19', '1.20'],
+    version: '1.20',
     loading: false,
     lang: {},
     tagZip: null,

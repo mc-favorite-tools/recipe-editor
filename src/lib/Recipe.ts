@@ -27,6 +27,17 @@ interface ISmithing extends IBaseRecipeProps {
     /** 输出 */
     result: RecipeResult;
 }
+/** 锻造台，1.20+ */
+interface ISmithingTransform extends IBaseRecipeProps {
+    /** 原料 */
+    base: Ingredient;
+    /** 附加 */
+    addition: Ingredient;
+    /** 模板 */
+    template: Ingredient;
+    /** 输出 */
+    result: RecipeResult;
+}
 /** 高炉、营火、熔炉、烟熏炉配方 */
 interface IBlasting extends IBaseRecipeProps {
     /** 原料 */
@@ -189,6 +200,12 @@ export default class Recipe {
                 getCustomRecipeItem(data.base.item),
                 getCustomRecipeItem(data.addition.item),
             ]
+        } else if (type === 'smithing_transform') {
+            ingredients = [
+                getCustomRecipeItem(data.base.item),
+                getCustomRecipeItem(data.addition.item),
+                getCustomRecipeItem(data.template.item),
+            ]
         } else {
             ingredients = [format(data.ingredient)]
         }
@@ -265,6 +282,23 @@ export default class Recipe {
                 type,
                 base,
                 addition,
+                result: {
+                    item: result?.item,
+                    count: result?.count
+                },
+            }
+            if (group) {
+                return { ...data, group }
+            }
+            return data
+        }
+        if (t === CraftType.SmithingTransform) {
+            const [base, addition, template] = ingredients.map(it => ({ item: it.item[0] }))
+            const data: ISmithingTransform = {
+                type,
+                base,
+                addition,
+                template,
                 result: {
                     item: result?.item,
                     count: result?.count

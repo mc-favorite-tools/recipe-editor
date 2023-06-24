@@ -67,7 +67,7 @@ function App() {
                     <div className="footer">
                         <span>by </span>
                         <a href="https://github.com/hans000/mc-recipe-editor" target="_blank">hans000</a>
-                        <span style={{ padding: 8 }}>交流群916625813</span>
+                        <span style={{ padding: 8 }}>QQ: 2112717288</span>
                     </div>
                 </div>
             </Spin>
