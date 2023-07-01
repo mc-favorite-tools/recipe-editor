@@ -1,4 +1,7 @@
-// The GPL License, Copyright (c) 2021, hans0000
+/*
+ * The AGPL License (AGPL)
+ * Copyright (c) 2023 hans000
+ */
 export function trimPrefix(text: string) {
     return !!text && typeof text === 'string' ? (text.startsWith('minecraft:') ? text.slice(10) : text) : 'error'
 }

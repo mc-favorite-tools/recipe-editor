@@ -1,4 +1,7 @@
-// The GPL License, Copyright (c) 2021, hans0000
+/*
+ * The AGPL License (AGPL)
+ * Copyright (c) 2023 hans000
+ */
 import React from "react";
 import { ITileData } from "../../lib";
 
