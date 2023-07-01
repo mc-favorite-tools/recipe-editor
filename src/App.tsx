@@ -69,7 +69,7 @@ function App() {
                     <RecipeEditor />
                     <div className="footer">
                         <span>Copyright © {new Date().getFullYear()} by </span>
-                        <a href="https://github.com/hans000/mc-recipe-editor" target="_blank">hans000</a>
+                        <a href="https://github.com/mc-favorite-tools/recipe-editor" target="_blank">hans000</a>
                         <span style={{ padding: 8 }}>QQ: 2112717288</span>
                     </div>
                 </div>
