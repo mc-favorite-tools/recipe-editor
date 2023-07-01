@@ -1,4 +1,4 @@
-# mc-recipe-editor
+# recipe-editor
 
 # LICENSE
-[GPL](./LICENSE)
+[GPL-3.0](./LICENSE)
